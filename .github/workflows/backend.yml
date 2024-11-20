@@ -7,23 +7,36 @@ on:
   workflow_dispatch: # Manually deploy on main branch
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
+    container:
+      image: node:16.14.0
 
     steps:
-      # Step 1: Checkout the repository code
-      - name: 🚚 Get latest code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-      # Step 2: Set up Node.js
-      - name: Set up Node.js 16
-        uses: actions/setup-node@v3
+      - name: Cache node modules
+        uses: actions/cache@v2
         with:
-          node-version: 16.14.0
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
-      # Step 3: Install dependencies
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+
+  security_scan:
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: node:16.14.0
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Security Scan
+        uses: zricethezav/gitleaks-action@v1.5.0
 
       # Step 4: Create .env file dynamically
       - name: Create .env file dynamically
