@@ -60,7 +60,6 @@ jobs:
           ls -R
           cat .env
           cat config/config.json
-          cat config/trsh.js
           cat .htaccess
 
       # Step 7: Deploy files to the appropriate server
