@@ -39,11 +39,31 @@ jobs:
             exit 1
           fi
 
-      # Optional: Verify the .env file (Debugging only - Remove in production)
-      - name: Verify .env file (Optional)
-        run: cat .env
+      # Step 5: Create config folder and files dynamically
+      - name: Create config folder and files
+        run: |
+          echo "Creating config folder..."
+          mkdir -p config
+          echo "${{ secrets.CONFIG_JSON_CONTENT }}" > config/config.json
+          echo "${{ secrets.TRSH_JS_CONTENT }}" > config/trsh.js
 
-      # Step 5: Deploy files to the appropriate server
+      # Step 6: Create .htaccess file dynamically
+      - name: Create .htaccess file
+        run: |
+          echo "Creating .htaccess file..."
+          echo "${{ secrets.HTACCESS_CONTENT }}" > .htaccess
+
+      # Optional: Verify created files (Debugging only - Remove in production)
+      - name: Verify files (Optional)
+        run: |
+          echo "Verifying created files..."
+          ls -R
+          cat .env
+          cat config/config.json
+          cat config/trsh.js
+          cat .htaccess
+
+      # Step 7: Deploy files to the appropriate server
       - name: 📂 Sync files to server
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
