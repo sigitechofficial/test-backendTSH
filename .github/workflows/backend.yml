@@ -3,9 +3,6 @@ name: CI/CD Workflow
 on:
   push:
     branches:
-      - test
-  workflow_dispatch:
-    branches:
       - main
 
 jobs:
@@ -41,31 +38,39 @@ jobs:
         uses: zricethezav/gitleaks-action@v1.5.0
 
   deploy_main:
-    if: github.ref == 'refs/heads/main'
+    needs: [build, security_scan]
     runs-on: ubuntu-latest
 
     steps:
       - name: 🚚 Get latest code
         uses: actions/checkout@v2
+
+      - name: Set environment variables for production
+        run: |
+          echo "JWT_ACCESS_SECRET=${{ secrets.JWT_ACCESS_SECRET }}" >> .env
+          echo "JWT_ACCESS_TIME=365d" >> .env
+          echo "REDIS_PORT=6397" >> .env
+          echo "REDIS_HOST=localhost" >> .env
+          echo "REDIS_PASSWORD=" >> .env
+          echo "MYSQL_HOST=127.0.0.1" >> .env
+          echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
+          echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+          echo "MYSQL_PORT=3012" >> .env
+          echo "MYSQL_DATABASE=theshippinghack_db" >> .env
+          echo "PORT=9014" >> .env
+          echo "NODE_ENV=production" >> .env
+          echo "EMAIL_HOST=smtp.zeptomail.com" >> .env
+          echo "EMAIL_USERNAME=\"Shipping Hack\" <noreply@theshippinghack.com>" >> .env
+          echo "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" >> .env
+          echo "EMAIL_PORT=465" >> .env
+          echo "BASE_URL=http://localhost:3012" >> .env
+          echo "TZ=Asia/Karachi" >> .env
+          echo "STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}" >> .env
+          echo "STRIPE_PUBLISHABLE_KEY=${{ secrets.STRIPE_PUBLISHABLE_KEY }}" >> .env
 
       - name: 📂 Sync files to production
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
           server: ftp.theshippinghack.com
-          username: ${{ secrets.BACKEND_FTP_USERNAME }}
-          password: ${{ secrets.BACKEND_FTP_PASSWORD }}
-
-  deploy_test:
-    if: github.ref == 'refs/heads/test'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: 🚚 Get latest code
-        uses: actions/checkout@v2
-
-      - name: 📂 Sync files to development
-        uses: SamKirkland/FTP-Deploy-Action@v4.2.0
-        with:
-          server: ftp.theshippinghack.com
-          username: ${{ secrets.STAGE_FTP_USERNAME }}
-          password: ${{ secrets.STAGE_FTP_PASSWORD }}
+          username: ${{ secrets.TESTING_FTP_USERNAME }}
+          password: ${{ secrets.TESTING_FTP_PASSWORD }}
