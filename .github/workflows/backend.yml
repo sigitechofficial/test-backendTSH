@@ -45,7 +45,6 @@ jobs:
           echo "Creating config folder..."
           mkdir -p config
           echo "${{ secrets.CONFIG_JSON_CONTENT }}" > config/config.json
-          echo "${{ secrets.TRSH_JS_CONTENT }}" > config/trsh.js
 
       # Step 6: Create .htaccess file dynamically
       - name: Create .htaccess file
