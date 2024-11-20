@@ -57,7 +57,7 @@ jobs:
           echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
           echo "MYSQL_PORT=3012" >> .env
           echo "MYSQL_DATABASE=theshippinghack_db" >> .env
-          echo "PORT=9014" >> .env
+          echo "PORT=9090" >> .env
           echo "NODE_ENV=production" >> .env
           echo "EMAIL_HOST=smtp.zeptomail.com" >> .env
           echo "EMAIL_USERNAME=\"Shipping Hack\" <noreply@theshippinghack.com>" >> .env
@@ -75,4 +75,3 @@ jobs:
           username: ${{ secrets.TESTING_FTP_USERNAME }}
           password: ${{ secrets.TESTING_FTP_PASSWORD }}
 
-          
