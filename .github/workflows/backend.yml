@@ -41,16 +41,21 @@ jobs:
       # Step 4: Create .env file dynamically
       - name: Create .env file dynamically
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "Deploying to production server (main branch)..."
-            echo "${{ secrets.ENV_FILE_CONTENT_PROD }}" > .env
-          elif [[ "${{ github.ref }}" == "refs/heads/test" ]]; then
-            echo "Deploying to testing server (test branch)..."
-            echo "${{ secrets.ENV_FILE_CONTENT_DEV }}" > .env
-          else
-            echo "Invalid branch. Exiting."
-            exit 1
-          fi
+          echo "Creating .env file..."
+          case "${{ github.ref }}" in
+            "refs/heads/main")
+              echo "Deploying to production server (main branch)..."
+              echo "${{ secrets.ENV_FILE_CONTENT_PROD }}" > .env
+              ;;
+            "refs/heads/test")
+              echo "Deploying to testing server (test branch)..."
+              echo "${{ secrets.ENV_FILE_CONTENT_STAGE }}" > .env
+              ;;
+            *)
+              echo "Invalid branch. Exiting."
+              exit 1
+              ;;
+          esac
 
       # Step 5: Create config folder and files dynamically
       - name: Create config folder and files
