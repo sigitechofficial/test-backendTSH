@@ -1,74 +1,50 @@
-name: CI/CD Workflow
+name: CI/CD Workflow - Automatic for Test, Manual for Main
 
 on:
   push:
     branches:
-      - main
+      - test # Automatically deploy on test branch
+  workflow_dispatch: # Manually deploy on main branch
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    container:
-      image: node:16.14.0
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Cache node modules
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Install dependencies
-        run: npm ci
-
-  security_scan:
-    needs: build
-    runs-on: ubuntu-latest
-    container:
-      image: node:16.14.0
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Security Scan
-        uses: zricethezav/gitleaks-action@v1.5.0
-
-  deploy_main:
-    needs: [build, security_scan]
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout the repository code
       - name: 🚚 Get latest code
         uses: actions/checkout@v2
 
-      - name: Set environment variables for production
-        run: |
-          echo "JWT_ACCESS_SECRET=${{ secrets.JWT_ACCESS_SECRET }}" >> .env
-          echo "JWT_ACCESS_TIME=365d" >> .env
-          echo "REDIS_PORT=6397" >> .env
-          echo "REDIS_HOST=localhost" >> .env
-          echo "REDIS_PASSWORD=" >> .env
-          echo "MYSQL_HOST=127.0.0.1" >> .env
-          echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
-          echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
-          echo "MYSQL_PORT=3012" >> .env
-          echo "MYSQL_DATABASE=theshippinghack_db" >> .env
-          echo "PORT=9090" >> .env
-          echo "NODE_ENV=production" >> .env
-          echo "EMAIL_HOST=smtp.zeptomail.com" >> .env
-          echo "EMAIL_USERNAME=\"Shipping Hack\" <noreply@theshippinghack.com>" >> .env
-          echo "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" >> .env
-          echo "EMAIL_PORT=465" >> .env
-          echo "BASE_URL=http://localhost:3012" >> .env
-          echo "TZ=Asia/Karachi" >> .env
-          echo "STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}" >> .env
-          echo "STRIPE_PUBLISHABLE_KEY=${{ secrets.STRIPE_PUBLISHABLE_KEY }}" >> .env
+      # Step 2: Set up Node.js
+      - name: Set up Node.js 16
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.14.0
 
-      - name: 📂 Sync files to production
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 4: Create .env file dynamically
+      - name: Create .env file dynamically
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "Deploying to production server (main branch)..."
+            echo "${{ secrets.ENV_FILE_CONTENT_PROD }}" > .env
+          elif [[ "${{ github.ref }}" == "refs/heads/test" ]]; then
+            echo "Deploying to testing server (test branch)..."
+            echo "${{ secrets.ENV_FILE_CONTENT_DEV }}" > .env
+          else
+            echo "Invalid branch. Exiting."
+            exit 1
+          fi
+
+      # Optional: Verify the .env file (Debugging only - Remove in production)
+      - name: Verify .env file (Optional)
+        run: cat .env
+
+      # Step 5: Deploy files to the appropriate server
+      - name: 📂 Sync files to server
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
           server: ftp.theshippinghack.com
