@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - testing # Automatically deploy on test branch
-  workflow_dispatch: # Manually deploy on main branch
+      - main    # Automatically deploy on main branch
+  workflow_dispatch: # Manually deploy on any branch
 
 jobs:
   build:
@@ -13,7 +14,8 @@ jobs:
       image: node:16.14.0
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Cache node modules
         uses: actions/cache@v2
@@ -26,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Step 4: Create .env file dynamically
+      # Create .env file dynamically
       - name: Create .env file dynamically
         run: |
           echo "Creating .env file..."
@@ -45,14 +47,14 @@ jobs:
               ;;
           esac
 
-      # Step 5: Create config folder and files dynamically
+      # Create config folder and files dynamically
       - name: Create config folder and files
         run: |
           echo "Creating config folder..."
           mkdir -p config
           echo "${{ secrets.CONFIG_JSON_CONTENT }}" > config/config.json
 
-      # Step 6: Create .htaccess file dynamically
+      # Create .htaccess file dynamically
       - name: Create .htaccess file
         run: |
           echo "Creating .htaccess file..."
@@ -67,13 +69,15 @@ jobs:
           cat config/config.json
           cat .htaccess
 
-      # Step 7: Deploy files to the appropriate server
+      # Deploy to server based on branch
       - name: 📂 Sync files to server
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
           server: ftp.theshippinghack.com
           username: ${{ secrets.TESTING_FTP_USERNAME }}
           password: ${{ secrets.TESTING_FTP_PASSWORD }}
+          server-dir: ${{ github.ref == 'refs/heads/main' && '/home/theshippinghack/production.theshippinghack.com' || '/home/theshippinghack/testing.theshippinghack.com' }}
+          protocol: ftps
 
   deploy_main:
     if: github.ref == 'refs/heads/main'
@@ -98,3 +102,5 @@ jobs:
           server: ftp.theshippinghack.com
           username: ${{ secrets.STAGE_FTP_USERNAME }}
           password: ${{ secrets.STAGE_FTP_PASSWORD }}
+          server-dir: /path/to/production
+          protocol: ftps
