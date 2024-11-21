@@ -76,7 +76,7 @@ jobs:
           server: ftp.theshippinghack.com
           username: ${{ secrets.TESTING_FTP_USERNAME }}
           password: ${{ secrets.TESTING_FTP_PASSWORD }}
-          server-dir: ${{ github.ref == 'refs/heads/main' && '/home/theshippinghack/production.theshippinghack.com' || '/home/theshippinghack/testing.theshippinghack.com' }}
+          server-dir: ${{ github.ref == 'refs/heads/main' && '/home/theshippinghack/production.theshippinghack.com/' || '/home/theshippinghack/testing.theshippinghack.com/' }}
           protocol: ftps
 
   deploy_main:
