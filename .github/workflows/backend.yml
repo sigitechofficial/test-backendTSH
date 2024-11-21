@@ -51,14 +51,18 @@ jobs:
         run: |
           echo "Extracting node_modules.tar.gz locally..."
           tar -xzf node_modules.tar.gz
+          ls -l # List files for verification
 
-      - name: Transfer files including extracted node_modules
+      - name: Transfer all files including node_modules
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
           server: ftp.theshippinghack.com
           username: ${{ secrets.TESTING_FTP_USERNAME }}
           password: ${{ secrets.TESTING_FTP_PASSWORD }}
-          local-dir: ./ # Ensure the extracted node_modules is part of the upload
+          local-dir: ./ # Ensure all files including node_modules are synchronized
+          exclude: |
+            .git*
+            node_modules.tar.gz # Avoid uploading the tar file again
 
       - name: Verify deployment
-        run: echo "Files successfully transferred to the server!"
+        run: echo "Deployment completed successfully!"
