@@ -7,7 +7,7 @@ on:
   workflow_dispatch: # Manually deploy on the main branch
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     container:
       image: node:16.14.0
@@ -26,43 +26,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Archive node_modules
-        run: tar -czf node_modules.tar.gz node_modules
-
-      - name: Upload node_modules artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: node_modules
-          path: node_modules.tar.gz
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Download node_modules artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: node_modules
-
-      - name: Extract node_modules locally
-        run: |
-          echo "Extracting node_modules.tar.gz locally..."
-          tar -xzf node_modules.tar.gz
-          ls -l # List files for verification
-
-      - name: Transfer all files including node_modules
+      - name: Transfer all files directly including node_modules
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
           server: ftp.theshippinghack.com
           username: ${{ secrets.TESTING_FTP_USERNAME }}
           password: ${{ secrets.TESTING_FTP_PASSWORD }}
-          local-dir: ./ # Ensure all files including node_modules are synchronized
+          local-dir: ./ # Upload all files, including node_modules
           exclude: |
             .git*
-            node_modules.tar.gz # Avoid uploading the tar file again
+            .github* # Exclude CI/CD configuration files if not needed
 
       - name: Verify deployment
         run: echo "Deployment completed successfully!"
