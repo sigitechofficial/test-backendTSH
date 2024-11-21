@@ -26,21 +26,35 @@ jobs:
           npm ci
           tar -czf node_modules.tar.gz node_modules
 
-      - name: Deploy files including compressed node_modules
+      - name: Create extract.sh script
+        run: |
+          echo "#!/bin/bash" > extract.sh
+          echo "cd testing.theshippinghack.com" >> extract.sh
+          echo "if [ -f node_modules.tar.gz ]; then" >> extract.sh
+          echo "    echo 'Extracting node_modules.tar.gz...'" >> extract.sh
+          echo "    tar -xzf node_modules.tar.gz" >> extract.sh
+          echo "    rm -f node_modules.tar.gz" >> extract.sh
+          echo "    echo 'Extraction completed!'" >> extract.sh
+          echo "else" >> extract.sh
+          echo "    echo 'node_modules.tar.gz not found!'" >> extract.sh
+          echo "fi" >> extract.sh
+
+      - name: Deploy files including compressed node_modules and script
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
           server: ftp.theshippinghack.com
           username: ${{ secrets.TESTING_FTP_USERNAME }}
           password: ${{ secrets.TESTING_FTP_PASSWORD }}
+          local-dir: ./ # This ensures all files, including `extract.sh`, are uploaded
 
       - name: Trigger server-side extraction script
         run: |
           curl -u ${{ secrets.TESTING_FTP_USERNAME }}:${{ secrets.TESTING_FTP_PASSWORD }} \
-          ftp://ftp.theshippinghack.com/home/theshippinghack/testing.theshippinghack.com/extract.sh \
+          ftp://ftp.theshippinghack.com/testing.theshippinghack.com/extract.sh \
           --upload-file extract.sh
 
       - name: Execute extraction command
         run: |
           curl -u ${{ secrets.TESTING_FTP_USERNAME }}:${{ secrets.TESTING_FTP_PASSWORD }} \
-          ftp://ftp.theshippinghack.com/home/theshippinghack/testing.theshippinghack.com/ \
-          -Q "SITE CHMOD 777 extract.sh && ./extract.sh
+          ftp://ftp.theshippinghack.com/testing.theshippinghack.com/ \
+          -Q "SITE CHMOD 777 extract.sh && ./extract.sh"
