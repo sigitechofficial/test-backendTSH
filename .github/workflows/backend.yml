@@ -1,8 +1,9 @@
 on:
   push:
     branches:
-      - testing # Automatically deploy on test branch
-  workflow_dispatch: # Manually deploy on main branch
+      - testing
+      - main
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -32,8 +33,14 @@ jobs:
           username: ${{ secrets.TESTING_FTP_USERNAME }}
           password: ${{ secrets.TESTING_FTP_PASSWORD }}
 
-      - name: Extract node_modules via FTP
+      - name: Trigger server-side extraction script
+        run: |
+          curl -u ${{ secrets.TESTING_FTP_USERNAME }}:${{ secrets.TESTING_FTP_PASSWORD }} \
+          ftp://ftp.theshippinghack.com/home/theshippinghack/testing.theshippinghack.com/extract.sh \
+          --upload-file extract.sh
+
+      - name: Execute extraction command
         run: |
           curl -u ${{ secrets.TESTING_FTP_USERNAME }}:${{ secrets.TESTING_FTP_PASSWORD }} \
           ftp://ftp.theshippinghack.com/home/theshippinghack/testing.theshippinghack.com/ \
-          --upload-file extract_node_modules.php
+          -Q "SITE CHMOD 755 extract.sh && ./extract.sh
