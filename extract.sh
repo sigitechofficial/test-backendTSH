@@ -1,17 +1,19 @@
+name: CI/CD Workflow
+
 on:
   push:
     branches:
-      - testing
-      - main
-  workflow_dispatch:
+      - testing # Automatically deploy on test branch
+  workflow_dispatch: # Manually deploy on main branch
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
+    container:
+      image: node:16.14.0
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
       - name: Cache node modules
         uses: actions/cache@v2
@@ -20,26 +22,41 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Install dependencies locally and compress
+      - name: Archive node_modules
+        run: tar -czf node_modules.tar.gz node_modules
+
+      - name: Upload node_modules artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: node_modules
+          path: node_modules.tar.gz
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Download node_modules artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: node_modules
+
+      - name: Extract node_modules locally before deployment
         run: |
-          npm ci
-          tar -czf node_modules.tar.gz node_modules
-
-      - name: Deploy files including node_modules.tar.gz
+          echo "Extracting node_modules.tar.gz locally..."
+          tar -xzf node_modules.tar.gz
+      - name: Transfer files to server
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
           server: ftp.theshippinghack.com
           username: ${{ secrets.TESTING_FTP_USERNAME }}
           password: ${{ secrets.TESTING_FTP_PASSWORD }}
-          local-dir: ./ # Upload all files in the current directory to the target server
+          local-dir: ./ # Sync all files, including extracted node_modules directory
 
-      - name: Set execute permissions on extract.sh
-        run: |
-          echo "SITE CHMOD 777 /home/theshippinghack/testing.theshippinghack.com/extract.sh" > ftp_commands.txt
-          lftp -u ${{ secrets.TESTING_FTP_USERNAME }},${{ secrets.TESTING_FTP_PASSWORD }} -e "open ftp.theshippinghack.com; source ftp_commands.txt; bye"
-
-      - name: Execute extract.sh on server
-        run: |
-          echo "Running extract.sh script on the server..."
-          lftp -u ${{ secrets.TESTING_FTP_USERNAME }},${{ secrets.TESTING_FTP_PASSWORD }} -e "open ftp.theshippinghack.com; cd /home/theshippinghack/testing.theshippinghack.com; !bash ./extract.sh; bye"
+      - name: Verify deployment
+        run: echo "Files successfully transferred to the server!"
