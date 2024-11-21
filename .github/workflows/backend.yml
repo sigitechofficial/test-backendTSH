@@ -3,8 +3,8 @@ name: CI/CD Workflow
 on:
   push:
     branches:
-      - testing # Automatically deploy on the test branch
-  workflow_dispatch: # Manually deploy on the main branch
+      - testing # Automatically deploy on test branch
+  workflow_dispatch: # Manually deploy on main branch
 
 jobs:
   build:
@@ -26,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-  deploy:
+  deploy_testing:
     needs: build
     runs-on: ubuntu-latest
     container:
@@ -35,9 +35,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install dependencies
-        run: npm ci # Ensure dependencies are installed locally
+      - name: Cache and install dependencies
+        run: npm ci # Ensure dependencies are installed locally, including node_modules
 
+      # Step 4: Create .env file dynamically
       - name: Create .env file dynamically
         run: |
           echo "Creating .env file..."
@@ -56,7 +57,30 @@ jobs:
               ;;
           esac
 
-      - name: Sync files directly including node_modules
+      # Step 5: Create config folder and files dynamically
+      - name: Create config folder and files
+        run: |
+          echo "Creating config folder..."
+          mkdir -p config
+          echo "${{ secrets.CONFIG_JSON_CONTENT }}" > config/config.json
+
+      # Step 6: Create .htaccess file dynamically
+      - name: Create .htaccess file
+        run: |
+          echo "Creating .htaccess file..."
+          echo "${{ secrets.HTACCESS_CONTENT }}" > .htaccess
+
+      # Optional: Verify created files (Debugging only - Remove in production)
+      - name: Verify files (Optional)
+        run: |
+          echo "Verifying created files..."
+          ls -R
+          cat .env
+          cat config/config.json
+          cat .htaccess
+
+      # Step 7: Deploy all files including node_modules to the server
+      - name: 📂 Sync files to testing server
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
           server: ftp.theshippinghack.com
@@ -65,8 +89,33 @@ jobs:
           local-dir: ./ # Upload everything including node_modules
           exclude: |
             .git*
-            .github*
-            .env # Optionally exclude the .env file after syncing
+            .github* # Exclude unnecessary files
 
-      - name: Verify deployment
-        run: echo "Deployment completed successfully!"
+  deploy_main:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Check deployment flag
+        id: check-flag
+        run: |
+          DEPLOY_FLAG="yes" # Set the flag here. Change to "yes" to enable deployment.
+          echo "Deployment flag is set to: $DEPLOY_FLAG"
+          if [ "$DEPLOY_FLAG" != "yes" ]; then
+            echo "Deployment flag is not set to 'yes'. Skipping deployment."
+            exit 0
+          fi
+
+      # Step 8: Deploy all files including node_modules to production server
+      - name: 📂 Sync files to production server
+        uses: SamKirkland/FTP-Deploy-Action@v4.2.0
+        with:
+          server: ftp.theshippinghack.com
+          username: ${{ secrets.STAGE_FTP_USERNAME }}
+          password: ${{ secrets.STAGE_FTP_PASSWORD }}
+          local-dir: ./ # Upload everything including node_modules
+          exclude: |
+            .git*
+            .github* # Exclude unnecessary files
