@@ -1,4 +1,5 @@
 name: CI/CD Workflow
+
 on:
   push:
     branches:
@@ -6,6 +7,7 @@ on:
   workflow_dispatch:
     branches:
       - main
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -13,6 +15,7 @@ jobs:
       image: node:16.14.0
     steps:
       - uses: actions/checkout@v2
+      
       - name: Cache node modules
         uses: actions/cache@v2
         with:
@@ -20,8 +23,10 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
+      
       - name: Install dependencies
         run: npm i
+
   security_scan:
     needs: build
     runs-on: ubuntu-latest
@@ -29,27 +34,32 @@ jobs:
       image: node:16.14.0
     steps:
       - uses: actions/checkout@v2
+      
       - name: Security Scan
         uses: zricethezav/gitleaks-action@v1.5.0
+
   deploy_main:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - name: :lorry: Get latest code
+      - name: :lorry:Get latest code
         uses: actions/checkout@v2
-      - name: :open_file_folder: Sync files to production
+      
+      - name: :open_file_folder:Sync files to production
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
           server: ftp.theshippinghack.com
           username: ${{ secrets.BACKEND_FTP_USERNAME }}
           password: ${{ secrets.BACKEND_FTP_PASSWORD }}
+
   deploy_testing:
     if: github.ref == 'refs/heads/testing'
     runs-on: ubuntu-latest
     steps:
-      - name: :lorry: Get latest code
+      - name: :lorry:Get latest code
         uses: actions/checkout@v2
-      - name: :open_file_folder: Sync files to development
+      
+      - name: :open_file_folder:Sync files to development
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
           server: ftp.theshippinghack.com
