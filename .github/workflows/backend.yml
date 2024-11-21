@@ -87,10 +87,7 @@ jobs:
           username: ${{ secrets.TESTING_FTP_USERNAME }}
           password: ${{ secrets.TESTING_FTP_PASSWORD }}
           local-dir: ./ # Upload everything including node_modules
-          exclude: |
-            .git*
-            .github* # Exclude unnecessary files
-
+          
   deploy_main:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -116,6 +113,3 @@ jobs:
           username: ${{ secrets.STAGE_FTP_USERNAME }}
           password: ${{ secrets.STAGE_FTP_PASSWORD }}
           local-dir: ./ # Upload everything including node_modules
-          exclude: |
-            .git*
-            .github* # Exclude unnecessary files
