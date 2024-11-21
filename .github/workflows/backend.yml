@@ -3,8 +3,8 @@ name: CI/CD Workflow
 on:
   push:
     branches:
-      - testing # Automatically deploy on test branch
-  workflow_dispatch: # Manually deploy on main branch
+      - testing # Automatically deploy on the test branch
+  workflow_dispatch: # Manually deploy on the main branch
 
 jobs:
   build:
@@ -22,6 +22,7 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
+
       - name: Install dependencies
         run: npm ci
 
@@ -46,17 +47,18 @@ jobs:
         with:
           name: node_modules
 
-      - name: Extract node_modules locally before deployment
+      - name: Extract node_modules locally
         run: |
           echo "Extracting node_modules.tar.gz locally..."
           tar -xzf node_modules.tar.gz
-      - name: Transfer files to server
+
+      - name: Transfer files including extracted node_modules
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
           server: ftp.theshippinghack.com
           username: ${{ secrets.TESTING_FTP_USERNAME }}
           password: ${{ secrets.TESTING_FTP_PASSWORD }}
-          local-dir: ./ # Sync all files, including extracted node_modules directory
+          local-dir: ./ # Ensure the extracted node_modules is part of the upload
 
       - name: Verify deployment
         run: echo "Files successfully transferred to the server!"
