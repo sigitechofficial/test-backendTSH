@@ -47,43 +47,18 @@ jobs:
         with:
           name: node_modules
 
-      - name: Extract node_modules
-        run: tar -xzf node_modules.tar.gz
-
-      - name: Create .env file dynamically
+      - name: Extract node_modules locally before deployment
         run: |
-          echo "Creating .env file..."
-          case "${{ github.ref }}" in
-            "refs/heads/main")
-              echo "Deploying to production server (main branch)..."
-              echo "${{ secrets.ENV_FILE_CONTENT_PROD }}" > .env
-              ;;
-            "refs/heads/testing")
-              echo "Deploying to testing server (testing branch)..."
-              echo "${{ secrets.ENV_FILE_CONTENT_STAGE }}" > .env
-              ;;
-            *)
-              echo "Invalid branch. Exiting."
-              exit 1
-              ;;
-          esac
+          echo "Extracting node_modules.tar.gz locally..."
+          tar -xzf node_modules.tar.gz
 
-      - name: Create config folder and files
-        run: |
-          echo "Creating config folder..."
-          mkdir -p config
-          echo "${{ secrets.CONFIG_JSON_CONTENT }}" > config/config.json
-
-      - name: Create .htaccess file
-        run: |
-          echo "Creating .htaccess file..."
-          echo "${{ secrets.HTACCESS_CONTENT }}" > .htaccess
-
-      - name: Sync files to the server
+      - name: Transfer files to server
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
           server: ftp.theshippinghack.com
           username: ${{ secrets.TESTING_FTP_USERNAME }}
           password: ${{ secrets.TESTING_FTP_PASSWORD }}
+          local-dir: ./ # Sync all files, including extracted node_modules directory
 
-          
+      - name: Verify deployment
+        run: echo "Files successfully transferred to the server!"
