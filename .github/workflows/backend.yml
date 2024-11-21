@@ -1,5 +1,3 @@
-name: CI/CD Workflow
-
 on:
   push:
     branches:
@@ -7,13 +5,12 @@ on:
   workflow_dispatch: # Manually deploy on main branch
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
-    container:
-      image: node:16.14.0
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Cache node modules
         uses: actions/cache@v2
@@ -23,42 +20,20 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Archive node_modules
-        run: tar -czf node_modules.tar.gz node_modules
-
-      - name: Upload node_modules artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: node_modules
-          path: node_modules.tar.gz
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Download node_modules artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: node_modules
-
-      - name: Extract node_modules locally before deployment
+      - name: Install dependencies locally and compress
         run: |
-          echo "Extracting node_modules.tar.gz locally..."
-          tar -xzf node_modules.tar.gz
+          npm ci
+          tar -czf node_modules.tar.gz node_modules
 
-      - name: Transfer files to server
+      - name: Deploy files including compressed node_modules
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
           server: ftp.theshippinghack.com
           username: ${{ secrets.TESTING_FTP_USERNAME }}
           password: ${{ secrets.TESTING_FTP_PASSWORD }}
-          local-dir: ./ # Sync all files, including extracted node_modules directory
 
-      - name: Verify deployment
-        run: echo "Files successfully transferred to the server!"
+      - name: Extract node_modules via FTP
+        run: |
+          curl -u ${{ secrets.TESTING_FTP_USERNAME }}:${{ secrets.TESTING_FTP_PASSWORD }} \
+          ftp://ftp.theshippinghack.com/home/theshippinghack/testing.theshippinghack.com/ \
+          --upload-file extract_node_modules.php
