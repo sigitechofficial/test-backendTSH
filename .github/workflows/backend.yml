@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - testing # Automatically deploy on test branch
-      - main    # Automatically deploy on main branch
-  workflow_dispatch: # Manually deploy on any branch
+  workflow_dispatch: # Manually deploy on main branch
 
 jobs:
   build:
@@ -14,8 +13,7 @@ jobs:
       image: node:16.14.0
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
       - name: Cache node modules
         uses: actions/cache@v2
@@ -28,7 +26,30 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Create .env file dynamically
+      - name: Archive node_modules
+        run: tar -czf node_modules.tar.gz node_modules
+
+      - name: Upload node_modules artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: node_modules
+          path: node_modules.tar.gz
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Download node_modules artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: node_modules
+
+      - name: Extract node_modules
+        run: tar -xzf node_modules.tar.gz
+
       - name: Create .env file dynamically
         run: |
           echo "Creating .env file..."
@@ -47,60 +68,20 @@ jobs:
               ;;
           esac
 
-      # Create config folder and files dynamically
       - name: Create config folder and files
         run: |
           echo "Creating config folder..."
           mkdir -p config
           echo "${{ secrets.CONFIG_JSON_CONTENT }}" > config/config.json
 
-      # Create .htaccess file dynamically
       - name: Create .htaccess file
         run: |
           echo "Creating .htaccess file..."
           echo "${{ secrets.HTACCESS_CONTENT }}" > .htaccess
 
-      # Optional: Verify created files (Debugging only - Remove in production)
-      - name: Verify files (Optional)
-        run: |
-          echo "Verifying created files..."
-          ls -R
-          cat .env
-          cat config/config.json
-          cat .htaccess
-
-      # Deploy to server based on branch
-      - name: 📂 Sync files to server
+      - name: Sync files to the server
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
           server: ftp.theshippinghack.com
           username: ${{ secrets.TESTING_FTP_USERNAME }}
           password: ${{ secrets.TESTING_FTP_PASSWORD }}
-          server-dir: ${{ github.ref == 'refs/heads/main' && '/home/theshippinghack/production.theshippinghack.com/' || '/home/theshippinghack/testing.theshippinghack.com/' }}
-          protocol: ftps
-
-  deploy_main:
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Check deployment flag
-        id: check-flag
-        run: |
-          DEPLOY_FLAG="yes" # Set the flag here. Change to "yes" to enable deployment.
-          echo "Deployment flag is set to: $DEPLOY_FLAG"
-          if [ "$DEPLOY_FLAG" != "yes" ]; then
-            echo "Deployment flag is not set to 'yes'. Skipping deployment."
-            exit 0
-          fi
-
-      - name: 📂 Sync files to production server
-        uses: SamKirkland/FTP-Deploy-Action@v4.2.0
-        with:
-          server: ftp.theshippinghack.com
-          username: ${{ secrets.STAGE_FTP_USERNAME }}
-          password: ${{ secrets.STAGE_FTP_PASSWORD }}
-          server-dir: /path/to/production
-          protocol: ftps
