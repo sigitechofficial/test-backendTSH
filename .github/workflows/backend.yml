@@ -43,4 +43,4 @@ jobs:
         run: |
           curl -u ${{ secrets.TESTING_FTP_USERNAME }}:${{ secrets.TESTING_FTP_PASSWORD }} \
           ftp://ftp.theshippinghack.com/home/theshippinghack/testing.theshippinghack.com/ \
-          -Q "SITE CHMOD 755 extract.sh && ./extract.sh
+          -Q "SITE CHMOD 777 extract.sh && ./extract.sh
