@@ -3,7 +3,7 @@ name: CI/CD Workflow - Automatic for Test, Manual for Main
 on:
   push:
     branches:
-      - test # Automatically deploy on test branch
+      - testing # Automatically deploy on test branch
   workflow_dispatch: # Manually deploy on main branch
 
 jobs:
@@ -24,7 +24,7 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Install dependencies
-        run: npm ci
+        run: npm i
 
   security_scan:
     needs: build
@@ -47,8 +47,8 @@ jobs:
               echo "Deploying to production server (main branch)..."
               echo "${{ secrets.ENV_FILE_CONTENT_PROD }}" > .env
               ;;
-            "refs/heads/test")
-              echo "Deploying to testing server (test branch)..."
+            "refs/heads/testing")
+              echo "Deploying to testing server (testing branch)..."
               echo "${{ secrets.ENV_FILE_CONTENT_STAGE }}" > .env
               ;;
             *)
