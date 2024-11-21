@@ -1,15 +1,18 @@
+name: CI/CD Workflow
+
 on:
   push:
     branches:
-      - testing # Automatically deploy on test branch
-  workflow_dispatch: # Manually deploy on main branch
+      - testing
+  workflow_dispatch:
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
     container:
       image: node:16.14.0
-
     steps:
       - uses: actions/checkout@v2
 
@@ -24,85 +27,70 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-  security_scan:
-    needs: build
-    runs-on: ubuntu-latest
-    container:
-      image: node:16.14.0
+      - name: Verify node_modules
+        run: ls -l node_modules
 
-    steps:
-      - uses: actions/checkout@v2
+      - name: Archive project for deployment
+        run: zip -r build.zip ./*
 
-      - name: Security Scan
-        uses: zricethezav/gitleaks-action@v1.5.0
-
-      # Step 4: Create .env file dynamically
-      - name: Create .env file dynamically
-        run: |
-          echo "Creating .env file..."
-          case "${{ github.ref }}" in
-            "refs/heads/main")
-              echo "Deploying to production server (main branch)..."
-              echo "${{ secrets.ENV_FILE_CONTENT_PROD }}" > .env
-              ;;
-            "refs/heads/testing")
-              echo "Deploying to testing server (testing branch)..."
-              echo "${{ secrets.ENV_FILE_CONTENT_STAGE }}" > .env
-              ;;
-            *)
-              echo "Invalid branch. Exiting."
-              exit 1
-              ;;
-          esac
-
-      # Step 5: Create config folder and files dynamically
-      - name: Create config folder and files
-        run: |
-          echo "Creating config folder..."
-          mkdir -p config
-          echo "${{ secrets.CONFIG_JSON_CONTENT }}" > config/config.json
-
-      # Step 6: Create .htaccess file dynamically
-      - name: Create .htaccess file
-        run: |
-          echo "Creating .htaccess file..."
-          echo "${{ secrets.HTACCESS_CONTENT }}" > .htaccess
-
-      # Optional: Verify created files (Debugging only - Remove in production)
-      - name: Verify files (Optional)
-        run: |
-          echo "Verifying created files..."
-          ls -R
-          cat .env
-          cat config/config.json
-          cat .htaccess
-
-      # Step 7: Deploy files to the appropriate server
-      - name: 📂 Sync files to server
-        uses: SamKirkland/FTP-Deploy-Action@v4.2.0
-        with:
-          server: ftp.theshippinghack.com
-          username: ${{ secrets.TESTING_FTP_USERNAME }}
-          password: ${{ secrets.TESTING_FTP_PASSWORD }}
-
-  deploy_main:
+  create_files_and_deploy_main:
     if: github.ref == 'refs/heads/main'
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Check deployment flag
-        id: check-flag
+      # Create .env file
+      - name: Create .env file dynamically
         run: |
-          DEPLOY_FLAG="yes" # Set the flag here. Change to "yes" to enable deployment.
-          echo "Deployment flag is set to: $DEPLOY_FLAG"
-          if [ "$DEPLOY_FLAG" != "yes" ]; then
-            echo "Deployment flag is not set to 'yes'. Skipping deployment."
-            exit 0
-          fi
+          echo "Creating .env file for production..."
+          echo "${{ secrets.ENV_FILE_CONTENT_PROD }}" > .env
 
-      - name: 📂 Sync files to production server
+      # Create config.json
+      - name: Create config.json file dynamically
+        run: |
+          mkdir -p config
+          echo "${{ secrets.CONFIG_JSON_CONTENT }}" > config/config.json
+
+      # Create .htaccess file
+      - name: Create .htaccess file dynamically
+        run: echo "${{ secrets.HTACCESS_CONTENT }}" > .htaccess
+
+      # Deploy files to production
+      - name: Sync files to production
+        uses: SamKirkland/FTP-Deploy-Action@v4.2.0
+        with:
+          server: ftp.theshippinghack.com
+          username: ${{ secrets.BACKEND_FTP_USERNAME }}
+          password: ${{ secrets.BACKEND_FTP_PASSWORD }}
+
+  create_files_and_deploy_testing:
+    if: github.ref == 'refs/heads/testing'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Create .env file
+      - name: Create .env file dynamically
+        run: |
+          echo "Creating .env file for testing..."
+          echo "${{ secrets.ENV_FILE_CONTENT_STAGE }}" > .env
+
+      # Create config.json
+      - name: Create config.json file dynamically
+        run: |
+          mkdir -p config
+          echo "${{ secrets.CONFIG_JSON_CONTENT }}" > config/config.json
+
+      # Create .htaccess file
+      - name: Create .htaccess file dynamically
+        run: echo "${{ secrets.HTACCESS_CONTENT }}" > .htaccess
+
+      # Deploy files to testing
+      - name: Sync files to testing
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
           server: ftp.theshippinghack.com
