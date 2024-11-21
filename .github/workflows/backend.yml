@@ -70,15 +70,6 @@ jobs:
           echo "Creating .htaccess file..."
           echo "${{ secrets.HTACCESS_CONTENT }}" > .htaccess
 
-      # Optional: Verify created files (Debugging only - Remove in production)
-      - name: Verify files (Optional)
-        run: |
-          echo "Verifying created files..."
-          ls -R
-          cat .env
-          cat config/config.json
-          cat .htaccess
-
       # Step 7: Deploy all files including node_modules to the server
       - name: 📂 Sync files to testing server
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
@@ -87,6 +78,7 @@ jobs:
           username: ${{ secrets.TESTING_FTP_USERNAME }}
           password: ${{ secrets.TESTING_FTP_PASSWORD }}
           local-dir: ./ # Upload everything including node_modules
+          exclude: "" # Do not exclude anything
           
   deploy_main:
     if: github.ref == 'refs/heads/main'
@@ -113,3 +105,4 @@ jobs:
           username: ${{ secrets.STAGE_FTP_USERNAME }}
           password: ${{ secrets.STAGE_FTP_PASSWORD }}
           local-dir: ./ # Upload everything including node_modules
+          exclude: "" # Do not exclude anything
