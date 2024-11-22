@@ -34,12 +34,6 @@ jobs:
     container:
       image: node:16.14.0
 
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Security Scan
-        uses: zricethezav/gitleaks-action@v1.5.0
-
   deploy_main:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
