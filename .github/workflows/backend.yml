@@ -85,7 +85,7 @@ jobs:
           server: ftp.theshippinghack.com
           username: ${{ secrets.BACKEND_FTP_USERNAME }}
           password: ${{ secrets.BACKEND_FTP_PASSWORD }}
-          local-dir: deployment  # Use the prepared folder as the source
+          local-dir: deployment/  # Use the prepared folder as the source
           exclude: |
             .git*
             node_modules
@@ -131,7 +131,7 @@ jobs:
           server: ftp.theshippinghack.com
           username: ${{ secrets.TESTING_FTP_USERNAME }}
           password: ${{ secrets.TESTING_FTP_PASSWORD }}
-          local-dir: deployment  # Use the prepared folder as the source
+          local-dir: deployment/  # Use the prepared folder as the source
           exclude: |
             .git*
             node_modules
