@@ -80,11 +80,20 @@ jobs:
           server: ftp.theshippinghack.com
           username: ${{ secrets.BACKEND_FTP_USERNAME }}
           password: ${{ secrets.BACKEND_FTP_PASSWORD }}
+          local-dir: .  # Sync all files from the current directory
+          exclude: |
+            .git*
+            node_modules
+            *.log
+          include: |
+            .env
+            .htaccess
+            config/config.json
 
       - name: Trigger npm install on server
         run: |
-              echo "Triggering npm install via PHP script..."
-              curl -X GET "https://testing.theshippinghack.com/trigger.php"
+          echo "Triggering npm install via PHP script..."
+          curl -X GET "https://testing.theshippinghack.com/trigger.php"
 
   deploy_testing:
     if: github.ref == 'refs/heads/testing'
@@ -116,8 +125,17 @@ jobs:
           server: ftp.theshippinghack.com
           username: ${{ secrets.TESTING_FTP_USERNAME }}
           password: ${{ secrets.TESTING_FTP_PASSWORD }}
+          local-dir: .  # Sync all files from the current directory
+          exclude: |
+            .git*
+            node_modules
+            *.log
+          include: |
+            .env
+            .htaccess
+            config/config.json
 
       - name: Trigger npm install on server
         run: |
-            echo "Triggering npm install and pm2 start via PHP script..."
-            curl -X GET "https://testing.theshippinghack.com/trigger.php"
+          echo "Triggering npm install and pm2 start via PHP script..."
+          curl -X GET "https://testing.theshippinghack.com/trigger.php"
