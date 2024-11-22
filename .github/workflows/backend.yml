@@ -81,6 +81,11 @@ jobs:
           username: ${{ secrets.BACKEND_FTP_USERNAME }}
           password: ${{ secrets.BACKEND_FTP_PASSWORD }}
 
+      - name: Trigger npm install on server
+        run: |
+              echo "Triggering npm install via PHP script..."
+              curl -X GET "https://testing.theshippinghack.com/trigger.php"
+
   deploy_testing:
     if: github.ref == 'refs/heads/testing'
     runs-on: ubuntu-latest
@@ -114,5 +119,5 @@ jobs:
 
       - name: Trigger npm install on server
         run: |
-            echo "Triggering npm install via PHP script..."
+            echo "Triggering npm install and pm2 start via PHP script..."
             curl -X GET "https://testing.theshippinghack.com/trigger.php"
