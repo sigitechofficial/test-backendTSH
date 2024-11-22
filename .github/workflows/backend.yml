@@ -74,12 +74,6 @@ jobs:
       - name: 🚚 Get latest code
         uses: actions/checkout@v2
 
-      - name: Run custom bash script for npm install
-        run: |
-          echo "Running npm install in the project directory..."
-          # cd testing.theshippinghack.com
-          npm install
-
       - name: 📂 Sync files to production
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
@@ -110,12 +104,6 @@ jobs:
 
       - name: 🚚 Get latest code
         uses: actions/checkout@v2
-
-      - name: Run custom bash script for npm install
-        run: |
-          echo "Running npm install in the project directory..."
-          cd testing.theshippinghack.com
-          npm install
 
       - name: 📂 Sync files to development
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
