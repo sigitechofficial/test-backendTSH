@@ -28,11 +28,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-  security_scan:
-    needs: build
-    runs-on: ubuntu-latest
-    container:
-      image: node:16.14.0
 
   deploy_main:
     if: github.ref == 'refs/heads/main'
