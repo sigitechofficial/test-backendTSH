@@ -82,6 +82,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v2
       - name: Create .env file dynamically
         run: |
           echo "Creating .env file..."
@@ -98,8 +101,6 @@ jobs:
           echo "Creating .htaccess file..."
           echo "${{ secrets.HTACCESS_CONTENT }}" > .htaccess
 
-      - name: 🚚 Get latest code
-        uses: actions/checkout@v2
 
       - name: 📂 Sync files to development
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
