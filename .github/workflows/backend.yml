@@ -71,8 +71,13 @@ jobs:
           echo "Creating .htaccess file..."
           echo "${{ secrets.HTACCESS_CONTENT }}" > .htaccess
 
-      - name: 🚚 Get latest code
-        uses: actions/checkout@v2
+      - name: Prepare files for deployment
+        run: |
+          echo "Preparing specific files for deployment..."
+          mkdir -p deployment
+          cp .env deployment/
+          cp .htaccess deployment/
+          cp -r config deployment/
 
       - name: 📂 Sync files to production
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
@@ -80,15 +85,11 @@ jobs:
           server: ftp.theshippinghack.com
           username: ${{ secrets.BACKEND_FTP_USERNAME }}
           password: ${{ secrets.BACKEND_FTP_PASSWORD }}
-          local-dir: /
+          local-dir: deployment  # Use the prepared folder as the source
           exclude: |
             .git*
             node_modules
             *.log
-          include: |
-            .env
-            .htaccess
-            config/config.json
 
       - name: Trigger npm install on server
         run: |
@@ -116,8 +117,13 @@ jobs:
           echo "Creating .htaccess file..."
           echo "${{ secrets.HTACCESS_CONTENT }}" > .htaccess
 
-      - name: 🚚 Get latest code
-        uses: actions/checkout@v2
+      - name: Prepare files for deployment
+        run: |
+          echo "Preparing specific files for deployment..."
+          mkdir -p deployment
+          cp .env deployment/
+          cp .htaccess deployment/
+          cp -r config deployment/
 
       - name: 📂 Sync files to development
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
@@ -125,15 +131,11 @@ jobs:
           server: ftp.theshippinghack.com
           username: ${{ secrets.TESTING_FTP_USERNAME }}
           password: ${{ secrets.TESTING_FTP_PASSWORD }}
-          local-dir: /
+          local-dir: deployment  # Use the prepared folder as the source
           exclude: |
             .git*
             node_modules
             *.log
-          include: |
-            .env
-            .htaccess
-            config/config.json
 
       - name: Trigger npm install on server
         run: |
