@@ -71,21 +71,13 @@ jobs:
           echo "Creating .htaccess file..."
           echo "${{ secrets.HTACCESS_CONTENT }}" > .htaccess
 
-      - name: Prepare files for deployment
-        run: |
-          echo "Preparing specific files for deployment..."
-          mkdir -p deployment
-          cp .env deployment/
-          cp .htaccess deployment/
-          cp -r config deployment/
-
-      - name: 📂 Sync files to production
+      - name: 🚚 Sync all files to production
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
           server: ftp.theshippinghack.com
           username: ${{ secrets.BACKEND_FTP_USERNAME }}
           password: ${{ secrets.BACKEND_FTP_PASSWORD }}
-          local-dir: deployment/  # Use the prepared folder as the source
+          local-dir: ./  # Sync the entire working directory
           exclude: |
             .git*
             node_modules
@@ -117,21 +109,13 @@ jobs:
           echo "Creating .htaccess file..."
           echo "${{ secrets.HTACCESS_CONTENT }}" > .htaccess
 
-      - name: Prepare files for deployment
-        run: |
-          echo "Preparing specific files for deployment..."
-          mkdir -p deployment
-          cp .env deployment/
-          cp .htaccess deployment/
-          cp -r config deployment/
-
-      - name: 📂 Sync files to development
+      - name: 🚚 Sync all files to development
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
           server: ftp.theshippinghack.com
           username: ${{ secrets.TESTING_FTP_USERNAME }}
           password: ${{ secrets.TESTING_FTP_PASSWORD }}
-          local-dir: deployment/  # Use the prepared folder as the source
+          local-dir: ./  # Sync the entire working directory
           exclude: |
             .git*
             node_modules
