@@ -30,10 +30,13 @@ jobs:
 
 
   deploy_main:
+    needs: build
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v2
       - name: Check deployment flag
         id: check-flag
         run: |
@@ -60,8 +63,6 @@ jobs:
           echo "Creating .htaccess file..."
           echo "${{ secrets.HTACCESS_CONTENT }}" > .htaccess
 
-      - name: 🚚 Get latest code
-        uses: actions/checkout@v2
 
       - name: 📂 Sync files to production
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
