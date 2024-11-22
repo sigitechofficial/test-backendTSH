@@ -109,5 +109,5 @@ jobs:
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
           server: ftp.theshippinghack.com
-          username: ${{ secrets.STAGE_FTP_USERNAME }}
-          password: ${{ secrets.STAGE_FTP_PASSWORD }}
+          username: ${{ secrets.TESTING_FTP_USERNAME }}
+          password: ${{ secrets.TESTING_FTP_PASSWORD }}
