@@ -23,3 +23,5 @@ foreach ($commands as $command) {
 // Output the result for debugging
 echo nl2br($output);
 ?>
+
+
