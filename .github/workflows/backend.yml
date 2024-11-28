@@ -60,8 +60,8 @@ jobs:
 
       - name: Create .htaccess file
         run: |
-          echo "Creating .htaccess file..."
-          echo "${{ secrets.HTACCESS_CONTENT }}" > .htaccess
+          echo "Creating .htaccess_prod file..."
+          echo "${{ secrets.HTACCESS_CONTENT_PROD }}" > .htaccess
 
 
       - name: 📂 Sync files to production
@@ -101,16 +101,16 @@ jobs:
 
       - name: Create .htaccess file
         run: |
-          echo "Creating .htaccess file..."
-          echo "${{ secrets.HTACCESS_CONTENT }}" > .htaccess
+          echo "Creating .htaccess_stage file..."
+          echo "${{ secrets.HTACCESS_CONTENT_STAGE }}" > .htaccess
 
 
       - name: 📂 Sync files to development
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
           server: ftp.theshippinghack.com
-          username: ${{ secrets.TESTING_FTP_USERNAME }}
-          password: ${{ secrets.TESTING_FTP_PASSWORD }}
+          username: ${{ secrets.STAGE_FTP_USERNAME }}
+          password: ${{ secrets.STAGE_FTP_PASSWORD }}
           debug: true
 
       - name: Trigger npm install on server
