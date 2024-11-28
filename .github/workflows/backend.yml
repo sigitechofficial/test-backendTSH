@@ -97,7 +97,7 @@ jobs:
         run: |
           echo "Creating config folder..."
           mkdir -p config
-          echo "${{ secrets.CONFIG_JSON_CONTENT }}" > config/config.json
+          echo "${{ secrets.CONFIG_JSON_CONTENT_STAGE }}" > config/config.json
 
       - name: Create .htaccess file
         run: |
@@ -109,8 +109,8 @@ jobs:
         uses: SamKirkland/FTP-Deploy-Action@v4.2.0
         with:
           server: ftp.theshippinghack.com
-          username: ${{ secrets.STAGE_FTP_USERNAME }}
-          password: ${{ secrets.STAGE_FTP_PASSWORD }}
+          username: ${{ secrets.TESTING_FTP_USERNAME }}
+          password: ${{ secrets.TESTING_FTP_PASSWORD }}
           debug: true
 
       - name: Trigger npm install on server
