@@ -9,14 +9,14 @@ $nodeBinPath = '/home/theshippinghack/node/bin'; // Path to node binaries
 putenv("PATH=$nodeBinPath:" . getenv('PATH')); // Prepend nodeBinPath to system PATH
 
 // Define the process name for clarity
-$processName = 'theshppingh.js';
+$processName = 'theshppingh';
 
 // Commands for PM2 management
 $pm2StopDeleteCommand = "pm2 stop $processName || true && pm2 delete $processName || true";
 $pm2SaveCommand = "pm2 save";
 
 // Command to create the PM2 process and save it again
-$pm2CreateCommand = "npm install && pm2 start $processName && pm2 save";
+$pm2CreateCommand = "npm install && pm2 start $processName.js && pm2 save";
 
 // Combine all commands
 $command = "export HOME=/home/theshippinghack && cd $workingDir && $pm2StopDeleteCommand && $pm2SaveCommand && $pm2CreateCommand 2>&1";
