@@ -8,5 +8,3 @@ $output = shell_exec("export HOME=/home/theshippinghack && cd $workingDir && npm
 // Output the result
 echo nl2br($output);
 ?>
-
-
