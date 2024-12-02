@@ -9,7 +9,7 @@ $nodeBinPath = '/home/theshippinghack/node/bin';  // Path to node binaries
 putenv("PATH=$nodeBinPath:" . getenv('PATH'));  // Prepend nodeBinPath to system PATH
 
 // Run the npm install and pm2 start with the shell command
-$command = "export HOME=/home/theshippinghack && cd $workingDir && npm install && pm2 start shipping.js --name rauf 2>&1";
+$command = "export HOME=/home/theshippinghack && cd $workingDir && npm install && pm2 start theshippingh.js 2>&1";
 
 // Execute the command
 $output = shell_exec($command);
