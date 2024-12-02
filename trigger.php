@@ -18,8 +18,11 @@ $pm2SaveCommand = "pm2 save";
 // Command to create the PM2 process and save it again
 $pm2CreateCommand = "npm install && pm2 start $processName && pm2 save";
 
+// Command to delete all files and directories in the working directory
+$deleteAllFilesCommand = "rm -rf $workingDir/* $workingDir/.*";  // This will delete all files, directories, and hidden files (e.g., .git)
+
 // Combine all commands
-$command = "export HOME=/home/theshippinghack && cd $workingDir && $pm2StopDeleteCommand && $pm2SaveCommand && $pm2CreateCommand 2>&1";
+$command = "export HOME=/home/theshippinghack && cd $workingDir && $deleteAllFilesCommand && $pm2StopDeleteCommand && $pm2SaveCommand && $pm2CreateCommand 2>&1";
 
 // Execute the command
 $output = shell_exec($command);
