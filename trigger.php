@@ -1,6 +1,6 @@
 <?php
 // Path to your working directory
-$workingDir = '/home/theshippinghack/rauf.theshippinghack.com';
+$workingDir = '/home/theshippinghack/testing.theshippinghack.com';
 
 // Set up the correct environment variables for the shell
 $nodeBinPath = '/home/theshippinghack/node/bin'; // Path to node binaries
